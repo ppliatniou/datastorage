@@ -65,3 +65,116 @@ class FactoryAPITestCase(TestCase):
         )
         self.assertEqual(r.status_code, 400)
         self.assertTrue(self.is_field_in_details('[]', r.content))
+    
+    def test_storage_creation(self):
+        c = Client()
+        key = {"name": "id", "type": "integer"}
+        fields = [{"name": "sfield", "type": "long"}]
+        data = {
+            "name": "storage",
+            "key": key,
+            "fields": fields
+        }
+        r = c.post(
+            "/api/v1/factory/",
+            data,
+            content_type="application/json"
+        )
+        self.assertEqual(r.status_code, 201)
+        content = json.loads(r.content)
+        self.assertEqual(content["name"], "storage")
+        self.assertEqual(content["version"], 1)
+        self.assertTrue(content["locked"])
+        self.assertEqual(
+            content["definition"],
+            {
+                "key": key,
+                "fields": fields,
+                "indexes": {},
+            }
+        )
+        
+        r = c.get('/api/v1/factory/storage/')
+        content = json.loads(r.content)
+        self.assertEqual(content["name"], "storage")
+        self.assertEqual(content["version"], 1)
+        self.assertTrue(content["locked"])
+        self.assertEqual(
+            content["definition"],
+            {
+                "key": key,
+                "fields": fields,
+                "indexes": {},
+            }
+        )
+
+    def test_storage_update(self):
+        c = Client()
+        key = {"name": "id", "type": "integer"}
+        fields = [{"name": "sfield", "type": "long"}]
+        data = {
+            "name": "storage",
+            "key": key,
+            "fields": fields
+        }
+        r = c.post(
+            "/api/v1/factory/",
+            data,
+            content_type="application/json"
+        )
+        self.assertEqual(r.status_code, 201)
+        content = json.loads(r.content)
+        self.assertEqual(content["name"], "storage")
+        self.assertEqual(content["version"], 1)
+        self.assertTrue(content["locked"])
+        self.assertEqual(
+            content["definition"],
+            {
+                "key": key,
+                "fields": fields,
+                "indexes": {},
+            }
+        )
+
+        fields = [
+            {"name": "sfield", "type": "long"},
+            {"name": "sfield2", "type": "string", "max_length": 16, "default": ""}
+        ]
+        data = {
+            "name": "storage",
+            "key": key,
+            "fields": fields
+        }
+        r = c.post(
+            "/api/v1/factory/",
+            data,
+            content_type="application/json"
+        )
+        self.assertEqual(r.status_code, 201)
+        content = json.loads(r.content)
+        self.assertEqual(content["name"], "storage")
+        self.assertEqual(content["version"], 2)
+        self.assertTrue(content["locked"])
+        self.assertEqual(
+            content["definition"],
+            {
+                "key": key,
+                "fields": fields,
+                "indexes": {},
+            }
+        )
+    
+        r = c.get('/api/v1/factory/storage/')
+        content = json.loads(r.content)
+        self.assertEqual(content["name"], "storage")
+        self.assertEqual(content["version"], 2)
+        self.assertTrue(content["locked"])
+        self.assertEqual(
+            content["definition"],
+            {
+                "key": key,
+                "fields": fields,
+                "indexes": {},
+            }
+        )
+        

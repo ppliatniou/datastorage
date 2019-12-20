@@ -1,35 +1,49 @@
 from rest_framework.response import Response
+from rest_framework import status
 
 from utils.viewsets import JSONSchemaViewSet
 
 from factory.views import schemas
-from factory.models import Factory
 from factory.views.serializers import FactorySerializer
+from factory.models import Storage
 
 
 class FactoryViewSet(JSONSchemaViewSet):
     json_schema = schemas.v1_create_storage
-    queryset = Factory.objects.all()
+    queryset = Storage.objects.last_versions().order_by('-created_at')
     serializer_class = FactorySerializer
-
-    def list(self, request, *args, **kwargs):
-        # queryset = self.filter_queryset(self.get_queryset())
-        #
-        # page = self.paginate_queryset(queryset)
-        # if page is not None:
-        #     serializer = self.get_serializer(page, many=True)
-        #     return self.get_paginated_response(serializer.data)
-        #
-        # serializer = self.get_serializer(queryset, many=True)
-        # return Response(serializer.data)
-        return Response({})
+    lookup_field = 'name'
 
     def create(self, request, *args, **kwargs):
-        return Response({})
-        # serializer = self.get_serializer(data=request.data)
-        # serializer.is_valid(raise_exception=True)
-        # self.perform_create(serializer)
-        # headers = self.get_success_headers(serializer.data)
-        # return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        data = request.data
+        storage_name = data['name']
+        qs = self.get_queryset()
+        try:
+            s = qs.get(name=storage_name)
+
+            data = {
+                "name": storage_name,
+                "version": s.version + 1,
+                "definition": {
+                    'key': data['key'],
+                    'fields': data['fields'],
+                    'indexes': data.get('indexes', {})
+                }
+            }
+        except Storage.DoesNotExist:
+            data = {
+                "name": storage_name,
+                "version": 1,
+                "definition": {
+                    'key': data['key'],
+                    'fields': data['fields'],
+                    'indexes': data.get('indexes', {})
+                }
+            }
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 

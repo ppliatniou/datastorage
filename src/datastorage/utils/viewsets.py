@@ -7,8 +7,6 @@ from utils.parsers import JSONSchemaParser
 
 class JSONSchemaViewSet(mixins.CreateModelMixin,
                         mixins.RetrieveModelMixin,
-                        mixins.UpdateModelMixin,
-                        mixins.DestroyModelMixin,
                         mixins.ListModelMixin,
                         GenericViewSet):
     parser_classes = (JSONSchemaParser,)
