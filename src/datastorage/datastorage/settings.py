@@ -77,8 +77,12 @@ WSGI_APPLICATION = 'datastorage.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'HOST': 'localhost',
+        'NAME': 'datastorage',
+        'ENGINE': 'django.db.backends.postgresql',
+        'USER': 'datastorage',
+        'PASSWORD': 'datastorage',
+        'PORT': 5430
     }
 }
 

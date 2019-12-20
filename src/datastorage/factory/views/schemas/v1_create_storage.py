@@ -1,41 +1,83 @@
 json = {
     "type": "object",
     "properties": {
-        "a": {"type": "integer"}
+        "name": {"type": "string", "minLength": 1, "maxLength": 255},
+        "key": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string", "minLength": 1, "maxLength": 128},
+                        "type": {"type": "string", "enum": ["integer", "long"]}
+                    },
+                    "required": ["name", "type"]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string", "minLength": 1, "maxLength": 128},
+                        "type": {"type": "string", "enum": ["string"]},
+                        "max_length": {"type": "integer", "minimum": 1, "maximum": 1024}
+                    },
+                    "required": ["name", "type", "max_length"]
+                }
+            ]
+        },
+        "fields": {
+            "type": "array",
+            "minItems": 1,
+            "items": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string", "minLength": 2, "maxLength": 128},
+                            "type": {"type": "string", "enum": ["integer", "long"]},
+                            "default": {"type": "integer", "minimum": 0}
+                        },
+                        "required": ["name", "type"]
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string", "minLength": 2, "maxLength": 128},
+                            "type": {"type": "string", "value": "string"},
+                            "max_length": {"type": "integer", "minimum": 1, "maximum": 1024},
+                            "default": {"type": "string", "minLength": 0}
+                        },
+                        "required": ["name", "type"]
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string", "minLength": 2, "maxLength": 128},
+                            "type": {"type": "string", "value": "text"},
+                            "default": {"type": "string", "minLength": 0}
+                        },
+                        "required": ["name", "type"]
+                    }
+                ]
+        },
+        "indexes": {
+            "type": "object",
+            "properties": {
+                "unique": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": [
+                        {"type": "string", "minLength": 2, "maxLength": 128}
+                    ]
+                }
+            }
+        }
     },
-    "required": ["a"]
-    # "name": "Product",
-    # "properties": {
-    #     "name": {
-    #         "type": "string",
-    #         "required": True
-    #     },
-    #     "price": {
-    #         "type": "number",
-    #         "minimum": 0,
-    #         "required": True
-    #     },
-    #     "tags": {
-    #         "type": "array",
-    #         "items": {"type": "string"}
-    #     },
-    #     "stock": {
-    #         "type": "object",
-    #         "properties": {
-    #             "warehouse": {"type": "number"},
-    #             "retail": {"type": "number"}
-    #         }
-    #     }
-    # }
+    "required": ["name", "key", "fields"]
 }
 
-# The JSON Schema above can be used to test the validity of the JSON code below:
+
 example_data = {
     "name": "Foo",
-    "price": 123,
-    "tags": ["Bar", "Eek"],
-    "stock": {
-        "warehouse": 300,
-        "retail": 20
-    }
+    "key": {"name": "keyfield", "type": "integer"},
+    "fields": [
+        {"name": "sf", "type": "string", "max_length": 200}
+    ]
 }

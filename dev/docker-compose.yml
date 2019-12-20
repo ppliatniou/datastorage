@@ -1,0 +1,12 @@
+version: '3'
+services:
+  db:
+    image: postgres:12-alpine
+    ports:
+      - 5430:5432
+    environment:
+      POSTGRES_PASSWORD: datastorage
+      POSTGRES_USER: datastorage
+      POSTGRES_DB: datastorage
+    volumes:
+      - ~/datastorage_dbdata:/data/pgdata
