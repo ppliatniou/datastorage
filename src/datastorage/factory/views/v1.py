@@ -6,6 +6,8 @@ from utils.viewsets import JSONSchemaViewSet
 from factory.views import schemas
 from factory.views.serializers import FactorySerializer
 from factory.models import Storage
+from factory.storage.validation import is_valid as is_storage_valid
+from factory.storage.compatibility import is_compatible as is_storage_compatible
 
 
 class FactoryViewSet(JSONSchemaViewSet):
@@ -16,29 +18,30 @@ class FactoryViewSet(JSONSchemaViewSet):
 
     def create(self, request, *args, **kwargs):
         data = request.data
+        storage_definition = {
+            'key': data['key'],
+            'fields': data['fields']
+        }
+
+        is_storage_valid(storage_definition)
+        
         storage_name = data['name']
         qs = self.get_queryset()
         try:
             s = qs.get(name=storage_name)
 
+            is_storage_compatible(s.definition, storage_definition)
+
             data = {
                 "name": storage_name,
                 "version": s.version + 1,
-                "definition": {
-                    'key': data['key'],
-                    'fields': data['fields'],
-                    'indexes': data.get('indexes', {})
-                }
+                "definition": storage_definition
             }
         except Storage.DoesNotExist:
             data = {
                 "name": storage_name,
                 "version": 1,
-                "definition": {
-                    'key': data['key'],
-                    'fields': data['fields'],
-                    'indexes': data.get('indexes', {})
-                }
+                "definition": storage_definition
             }
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)

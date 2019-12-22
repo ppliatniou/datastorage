@@ -1,3 +1,34 @@
+fields = [
+    {
+        "type": "object",
+        "properties": {
+            "name": {"type": "string", "minLength": 2, "maxLength": 128},
+            "type": {"type": "string", "enum": ["integer", "long"]},
+            "default": {"type": "integer", "minimum": 0}
+        },
+        "required": ["name", "type"]
+    },
+    {
+        "type": "object",
+        "properties": {
+            "name": {"type": "string", "minLength": 2, "maxLength": 128},
+            "type": {"type": "string", "enum": ["string"]},
+            "max_length": {"type": "integer", "minimum": 1, "maximum": 1024},
+            "default": {"type": "string", "minLength": 0}
+        },
+        "required": ["name", "type", "max_length"]
+    },
+    {
+        "type": "object",
+        "properties": {
+            "name": {"type": "string", "minLength": 2, "maxLength": 128},
+            "type": {"type": "string", "enum": ["text"]},
+            "default": {"type": "string", "minLength": 0}
+        },
+        "required": ["name", "type"]
+    }
+]
+
 json = {
     "type": "object",
     "properties": {
@@ -26,54 +57,24 @@ json = {
         "fields": {
             "type": "array",
             "minItems": 1,
-            "items": [
-                {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string", "minLength": 2, "maxLength": 128},
-                        "type": {"type": "string", "value": "integer"},
-                        "default": {"type": "integer", "minimum": 0}
-                    },
-                    "required": ["name", "type"]
-                },
-                {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string", "minLength": 2, "maxLength": 128},
-                        "type": {"type": "string", "value": "long"},
-                        "default": {"type": "integer", "minimum": 0}
-                    },
-                    "required": ["name", "type"]
-                },
-                {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string", "minLength": 2, "maxLength": 128},
-                        "type": {"type": "string", "value": "string"},
-                        "max_length": {"type": "integer", "minimum": 1, "maximum": 1024},
-                        "default": {"type": "string", "minLength": 0}
-                    },
-                    "required": ["name", "type", "max_length"]
-                },
-                {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string", "minLength": 2, "maxLength": 128},
-                        "type": {"type": "string", "value": "text"},
-                        "default": {"type": "string", "minLength": 0}
-                    },
-                    "required": ["name", "type"]
-                }
-            ]
+            "items": {
+                "oneOf": fields
+            }
         },
-        "indexes": {
+        "meta": {
             "type": "object",
             "properties": {
-                "unique": {
+                "unique_together": {
                     "type": "array",
                     "minItems": 1,
                     "items": [
-                        {"type": "string", "minLength": 2, "maxLength": 128}
+                        {
+                            "type": "array",
+                            "minItems": 2,
+                            "items": [
+                                {"type": "string", "minLength": 2, "maxLength": 128}
+                            ]
+                        }
                     ]
                 }
             }
