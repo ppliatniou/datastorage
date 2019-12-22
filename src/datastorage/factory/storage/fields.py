@@ -1,7 +1,10 @@
+from django.db import models
+
 
 __all__ = (
     'registry',
 )
+
 
 class BaseSchemaField:
     type_name = None
@@ -18,8 +21,8 @@ class BaseSchemaField:
     def index_definition(self, definition):
         return None
     
-    def django_db(self, definition):
-        raise NotImplementedError("Method django_db() is not implemented")
+    def django_db_field(self, definition):
+        raise NotImplementedError("Method django_db_field() is not implemented")
 
 
 class IntegerSchemaField(BaseSchemaField):
@@ -39,6 +42,12 @@ class IntegerSchemaField(BaseSchemaField):
             return "{} integer NOT NULL UNIQUE PRIMARY KEY".format(definition["name"])
         else:
             return "{} integer NOT NULL".format(definition["name"])
+    
+    def django_db_field(self, definition, *args, **kwargs):
+        field_kwargs = {}
+        if kwargs.get("is_pk"):
+            field_kwargs["primary_key"] = True
+        return models.IntegerField(**field_kwargs)
 
 
 class LongSchemaField(BaseSchemaField):
@@ -58,6 +67,12 @@ class LongSchemaField(BaseSchemaField):
             return "{} bigint NOT NULL UNIQUE PRIMARY KEY".format(definition["name"])
         else:
             return "{} bigint NOT NULL".format(definition["name"])
+    
+    def django_db_field(self, definition, *args, **kwargs):
+        field_kwargs = {}
+        if kwargs.get("is_pk"):
+            field_kwargs["primary_key"] = True
+        return models.BigIntegerField(**field_kwargs)
 
 
 class StringSchemaField(BaseSchemaField):
@@ -83,6 +98,14 @@ class StringSchemaField(BaseSchemaField):
                 definition["name"],
                 definition["max_length"]
             )
+    
+    def django_db_field(self, definition, *args, **kwargs):
+        field_kwargs = {
+            "max_length": definition["max_length"]
+        }
+        if kwargs.get("is_pk"):
+            field_kwargs["primary_key"] = True
+        return models.CharField(**field_kwargs)
 
 
 class FieldsRegistry:
