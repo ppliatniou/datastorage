@@ -1,0 +1,1 @@
+STORAGE_TABLE_PREFIX = "storage_{}"

@@ -25,3 +25,14 @@ class Storage(models.Model):
     class Meta:
         unique_together = ('name', 'version')
 
+
+class StorageMigration(models.Model):
+    name = models.CharField(max_length=128, db_index=True)
+    version = models.IntegerField()
+    definition = JSONField()
+    applied = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('name', 'version')

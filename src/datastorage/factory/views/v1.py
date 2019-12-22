@@ -5,9 +5,12 @@ from utils.viewsets import JSONSchemaViewSet
 
 from factory.views import schemas
 from factory.views.serializers import FactorySerializer
-from factory.models import Storage
+from factory.models import Storage, StorageMigration
 from factory.storage.validation import is_valid as is_storage_valid
 from factory.storage.compatibility import is_compatible as is_storage_compatible
+from factory.storage.migration import create_migration_diff
+
+from factory.storage.migration import perform_migration
 
 
 class FactoryViewSet(JSONSchemaViewSet):
@@ -27,14 +30,15 @@ class FactoryViewSet(JSONSchemaViewSet):
         
         storage_name = data['name']
         qs = self.get_queryset()
+        previous = None
         try:
-            s = qs.get(name=storage_name)
+            previous = qs.get(name=storage_name)
 
-            is_storage_compatible(s.definition, storage_definition)
+            is_storage_compatible(previous.definition, storage_definition)
 
             data = {
                 "name": storage_name,
-                "version": s.version + 1,
+                "version": previous.version + 1,
                 "definition": storage_definition
             }
         except Storage.DoesNotExist:
@@ -43,9 +47,20 @@ class FactoryViewSet(JSONSchemaViewSet):
                 "version": 1,
                 "definition": storage_definition
             }
+        
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+
+        instance = serializer.instance
+        migration_diff = create_migration_diff(previous, instance)
+        sm = StorageMigration.objects.create(
+            name=instance.name,
+            version=instance.version,
+            definition=migration_diff
+        )
+        perform_migration(sm)
+        
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
