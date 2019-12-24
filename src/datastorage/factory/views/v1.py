@@ -1,22 +1,23 @@
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.viewsets import GenericViewSet
+from rest_framework import mixins
 
 from utils.viewsets import JSONSchemaViewSet
 
 from factory.views import schemas
-from factory.views.serializers import FactorySerializer
+from factory.views.serializers import StorageSerializer, MigrationSerializer
 from factory.models import Storage, StorageMigration
 from factory.storage.validation import is_valid as is_storage_valid
 from factory.storage.compatibility import is_compatible as is_storage_compatible
 from factory.storage.migration import create_migration_diff
-
 from factory.storage.migration import perform_migration
 
 
-class FactoryViewSet(JSONSchemaViewSet):
+class StorageFactoryViewSet(JSONSchemaViewSet):
     json_schema = schemas.v1_create_storage
     queryset = Storage.objects.last_versions().order_by('-created_at')
-    serializer_class = FactorySerializer
+    serializer_class = StorageSerializer
     lookup_field = 'name'
 
     def create(self, request, *args, **kwargs):
@@ -63,5 +64,18 @@ class FactoryViewSet(JSONSchemaViewSet):
         
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class ReadyStatusViewSet(mixins.RetrieveModelMixin, GenericViewSet):
+    queryset = Storage.objects.last_versions()
+    serializer_class = MigrationSerializer
+    lookup_field = 'name'
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        migration = StorageMigration.objects.get(name=instance.name, version=instance.version)
+        
+        serializer = self.get_serializer(migration)
+        return Response(serializer.data)
 
 

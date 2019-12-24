@@ -9,13 +9,7 @@ __all__ = (
 )
 
 
-def Storage(name, module='factory.models'):
-    try:
-        storage = StorageDefinition.objects.last_versions().get(name=name)
-    except StorageDefinition.DoesNotExist:
-        pass
-        # TODO: Handle it!
-    
+def Storage(storage, module='factory.models'):
     class_attrs = {}
     class_attrs['__module__'] = module
     class_attrs["version"] = models.IntegerField()

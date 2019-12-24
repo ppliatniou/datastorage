@@ -1,5 +1,6 @@
 from django.db import connection, transaction
 
+from factory.models import Storage
 from factory.storage.registry import field_registry
 from factory.constants import STORAGE_TABLE_PREFIX
 
@@ -65,3 +66,4 @@ def perform_migration(migration):
         cursor.close()
         migration.applied = True
         migration.save()
+        Storage.objects.filter(name=migration.name).update(locked=False)

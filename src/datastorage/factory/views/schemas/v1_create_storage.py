@@ -80,6 +80,7 @@ json = {
             }
         }
     },
+    "additionalProperties": False,
     "required": ["name", "key", "fields"]
 }
 

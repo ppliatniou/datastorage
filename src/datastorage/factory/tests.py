@@ -13,16 +13,16 @@ class FactoryAPITestCase(TestCase):
         c = Client()
         
         # Send empty data
-        r = c.post('/api/v1/factory/', {}, content_type='application/json')
+        r = c.post('/api/v1/factory/storage/', {}, content_type='application/json')
         self.assertEqual(r.status_code, 400)
         self.assertTrue(self.is_field_in_details('name', r.content))
         # Send only name
-        r = c.post('/api/v1/factory/', {"name": "storage"}, content_type='application/json')
+        r = c.post('/api/v1/factory/storage/', {"name": "storage"}, content_type='application/json')
         self.assertEqual(r.status_code, 400)
         self.assertTrue(self.is_field_in_details('key', r.content))
         # Send name and key
         r = c.post(
-            '/api/v1/factory/',
+            '/api/v1/factory/storage/',
             {"name": "storage", "key": {"name": "id", "type": "integer"}},
             content_type='application/json'
         )
@@ -30,7 +30,7 @@ class FactoryAPITestCase(TestCase):
         self.assertTrue(self.is_field_in_details('fields', r.content))
         # Send empty fields
         r = c.post(
-            '/api/v1/factory/',
+            '/api/v1/factory/storage/',
             {
                 "name": "storage",
                 "key": {"name": "id", "type": "integer"},
@@ -42,7 +42,7 @@ class FactoryAPITestCase(TestCase):
         self.assertTrue(self.is_field_in_details('[]', r.content))
         # Send wrong key
         r = c.post(
-            '/api/v1/factory/',
+            '/api/v1/factory/storage/',
             {
                 "name": "storage",
                 "key": {"name": "id", "type": "text"},
@@ -58,7 +58,7 @@ class FactoryAPITestCase(TestCase):
         
         # Conflict key
         r = c.post(
-            '/api/v1/factory/',
+            '/api/v1/factory/storage/',
             {
                 "name": "storage",
                 "key": {"name": "id", "type": "integer"},
@@ -79,7 +79,7 @@ class FactoryAPITestCase(TestCase):
             "fields": fields
         }
         r = c.post(
-            "/api/v1/factory/",
+            "/api/v1/factory/storage/",
             data,
             content_type="application/json"
         )
@@ -96,11 +96,11 @@ class FactoryAPITestCase(TestCase):
             }
         )
         
-        r = c.get('/api/v1/factory/storage/')
+        r = c.get('/api/v1/factory/storage/storage/')
         content = json.loads(r.content)
         self.assertEqual(content["name"], "storage")
         self.assertEqual(content["version"], 1)
-        self.assertTrue(content["locked"])
+        self.assertFalse(content["locked"])
         self.assertEqual(
             content["definition"],
             {
@@ -108,6 +108,12 @@ class FactoryAPITestCase(TestCase):
                 "fields": fields
             }
         )
+
+        r = c.get('/api/v1/factory/ready_status/storage/')
+        content = json.loads(r.content)
+        self.assertEqual(content["name"], "storage")
+        self.assertEqual(content["version"], 1)
+        self.assertTrue(content["applied"])
 
     def test_storage_update(self):
         c = Client()
@@ -119,7 +125,7 @@ class FactoryAPITestCase(TestCase):
             "fields": fields
         }
         r = c.post(
-            "/api/v1/factory/",
+            "/api/v1/factory/storage/",
             data,
             content_type="application/json"
         )
@@ -146,7 +152,7 @@ class FactoryAPITestCase(TestCase):
             "fields": fields
         }
         r = c.post(
-            "/api/v1/factory/",
+            "/api/v1/factory/storage/",
             data,
             content_type="application/json"
         )
@@ -163,11 +169,11 @@ class FactoryAPITestCase(TestCase):
             }
         )
     
-        r = c.get('/api/v1/factory/storage/')
+        r = c.get('/api/v1/factory/storage/storage/')
         content = json.loads(r.content)
         self.assertEqual(content["name"], "storage")
         self.assertEqual(content["version"], 2)
-        self.assertTrue(content["locked"])
+        self.assertFalse(content["locked"])
         self.assertEqual(
             content["definition"],
             {
@@ -189,7 +195,7 @@ class FactoryAPITestCase(TestCase):
             "fields": fields
         }
         r = c.post(
-            "/api/v1/factory/",
+            "/api/v1/factory/storage/",
             data,
             content_type="application/json"
         )
@@ -217,7 +223,7 @@ class FactoryAPITestCase(TestCase):
             "fields": fields
         }
         r = c.post(
-            "/api/v1/factory/",
+            "/api/v1/factory/storage/",
             data,
             content_type="application/json"
         )
@@ -234,7 +240,7 @@ class FactoryAPITestCase(TestCase):
             "fields": fields
         }
         r = c.post(
-            "/api/v1/factory/",
+            "/api/v1/factory/storage/",
             data,
             content_type="application/json"
         )
@@ -252,7 +258,7 @@ class FactoryAPITestCase(TestCase):
             "fields": fields
         }
         r = c.post(
-            "/api/v1/factory/",
+            "/api/v1/factory/storage/",
             data,
             content_type="application/json"
         )
@@ -271,10 +277,9 @@ class FactoryAPITestCase(TestCase):
             "fields": fields
         }
         r = c.post(
-            "/api/v1/factory/",
+            "/api/v1/factory/storage/",
             data,
             content_type="application/json"
         )
         self.assertEqual(r.status_code, 400)
         self.assertTrue(self.is_field_in_details('sfield3', r.content))
-        

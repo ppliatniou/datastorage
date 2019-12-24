@@ -1,6 +1,5 @@
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
-from rest_framework.serializers import ModelSerializer
 
 from utils.parsers import JSONSchemaParser
 
