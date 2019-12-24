@@ -36,3 +36,8 @@ class StorageMigration(models.Model):
 
     class Meta:
         unique_together = ('name', 'version')
+
+
+class TestModel(models.Model):
+    name = models.CharField(max_length=128, db_index=True, unique=True)
+    tfield = models.TextField()

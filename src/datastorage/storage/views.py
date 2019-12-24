@@ -25,6 +25,9 @@ class StorageViewSet(mixins.DestroyModelMixin,
     def initialize_request(self, request, *args, **kwargs):
         from factory.storage.model_factory import Storage
         from factory.models import Storage as FactoryStorage
+        self.kwargs["storage"],\
+        self.kwargs["storage_model"],\
+        self.kwargs["storage_pk"] = None, None, None
         try:
             storage_attrs = self.kwargs[self.lookup_url_kwarg].split('/')
             if len(storage_attrs) == 1:
@@ -35,9 +38,15 @@ class StorageViewSet(mixins.DestroyModelMixin,
             self.kwargs["storage"] = FactoryStorage.objects.last_versions().get(name=storage_name)
             self.kwargs["storage_model"] = Storage(self.kwargs['storage'], 'storage.models')
             self.kwargs["storage_pk"] = storage_pk
-            return super().initialize_request(request)
         except (ValueError, KeyError, FactoryStorage.DoesNotExist):
+            pass
+        return super().initialize_request(request)
+    
+    def initial(self, *args, **kwargs):
+        if self.kwargs["storage_model"] is None:
             raise exceptions.NotFound()
+        super().initial(*args, **kwargs)
+        
     
     def get_serializer_class(self):
         from rest_framework.serializers import ModelSerializer
@@ -49,7 +58,6 @@ class StorageViewSet(mixins.DestroyModelMixin,
         return StorageSerializer
 
     def get_queryset(self):
-        from factory.storage.model_factory import Storage
         return self.kwargs["storage_model"].objects
     
     def get_object(self):

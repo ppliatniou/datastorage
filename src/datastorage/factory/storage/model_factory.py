@@ -17,11 +17,11 @@ def Storage(storage, module='factory.models'):
     class_attrs["updated_at"] = models.DateTimeField(auto_now=True)
 
     key_definition = storage.definition["key"]
-    key_field = field_registry.get_item(key_definition["type"])
+    key_field = field_registry.get(key_definition["type"])
     class_attrs[key_definition["name"]] = key_field.django_db_field(key_definition, is_pk=True)
 
     for field_def in storage.definition["fields"]:
-        field = field_registry.get_item(field_def["type"])
+        field = field_registry.get(field_def["type"])
         class_attrs[field_def["name"]] = field.django_db_field(field_def)
 
     StorageModel = type(

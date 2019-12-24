@@ -11,7 +11,6 @@ __all__ = (
 
 SQL_CREATE_TABLE = """
 CREATE TABLE {table_name}(
-{fields},
 version integer NOT NULL,
 created_at timestamp with time zone NOT NULL,
 updated_at timestamp with time zone NOT NULL
@@ -19,7 +18,11 @@ updated_at timestamp with time zone NOT NULL
 """
 
 SQL_ALTER_TABLE = """
-ALTER TABLE {table_name} ADD COLUMN {field_definition};
+ALTER TABLE {table_name} {statement};
+"""
+
+SQL_CREATE_INDEX = """
+CREATE UNIQUE INDEX {idx_name} ON {table_name} ({field_name});
 """
 
 
@@ -39,31 +42,42 @@ def create_migration_diff(previous, latest):
 
 def perform_migration(migration):
     operate_table_queries = []
-    if migration.version == 1:
-        key_field = field_registry.get_item(migration.definition["key"]["type"])
-        db_table_fields = [
-            key_field.sql_def(migration.definition["key"], is_pk=True)
-        ]
-        for def_field in migration.definition["fields"]:
-            field = field_registry.get_item(def_field["type"])
-            db_table_fields.append(field.sql_def(def_field))
-        operate_table_queries.append(SQL_CREATE_TABLE.format(
-            table_name=STORAGE_TABLE_PREFIX.format(migration.name.lower()),
-            fields=", ".join(db_table_fields)
-        ))
-    else:
-        for def_field in migration.definition["fields"]:
-            field = field_registry.get_item(def_field["type"])
-            operate_table_queries.append(SQL_ALTER_TABLE.format(
-                table_name=STORAGE_TABLE_PREFIX.format(migration.name.lower()),
-                field_definition=field.sql_def(def_field)
-            ))
     
-    with transaction.atomic():
-        cursor = connection.cursor()
-        for query in operate_table_queries:
-            cursor.execute(query)
-        cursor.close()
-        migration.applied = True
-        migration.save()
-        Storage.objects.filter(name=migration.name).update(locked=False)
+    if migration.version == 1:
+        operate_table_queries.append(SQL_CREATE_TABLE.format(
+            table_name=STORAGE_TABLE_PREFIX.format(migration.name.lower())
+        ))
+        
+        key_field = field_registry.get(migration.definition["key"]["type"])
+        operate_table_queries.append(
+            SQL_ALTER_TABLE.format(
+                table_name=STORAGE_TABLE_PREFIX.format(migration.name.lower()),
+                statement=key_field.sql_def(migration.definition["key"], is_pk=True)[0]
+            )
+        )
+        
+    for def_field in migration.definition["fields"]:
+        field = field_registry.get(def_field["type"])
+        operate_table_queries.extend([
+            SQL_ALTER_TABLE.format(
+                table_name=STORAGE_TABLE_PREFIX.format(migration.name.lower()),
+                statement=statement
+            )
+            for statement in field.sql_def(def_field)
+        ])
+        if field.index_def(def_field):
+            operate_table_queries.append(
+                SQL_CREATE_INDEX.format(
+                    idx_name='{}_{}_idx'.format(migration.name.lower(), def_field["name"]),
+                    table_name=STORAGE_TABLE_PREFIX.format(migration.name.lower()),
+                    field_name=def_field["name"]
+                )
+            )
+    
+    with connection.cursor() as cursor:
+        with transaction.atomic():
+            for query in operate_table_queries:
+                cursor.execute(query)
+            migration.applied = True
+            migration.save()
+            Storage.objects.filter(name=migration.name).update(locked=False)

@@ -1,33 +1,9 @@
+from factory.storage.registry import field_registry
+
 fields = [
-    {
-        "type": "object",
-        "properties": {
-            "name": {"type": "string", "minLength": 2, "maxLength": 128},
-            "type": {"type": "string", "enum": ["integer", "long"]},
-            "default": {"type": "integer", "minimum": 0}
-        },
-        "required": ["name", "type"]
-    },
-    {
-        "type": "object",
-        "properties": {
-            "name": {"type": "string", "minLength": 2, "maxLength": 128},
-            "type": {"type": "string", "enum": ["string"]},
-            "max_length": {"type": "integer", "minimum": 1, "maximum": 1024},
-            "default": {"type": "string", "minLength": 0}
-        },
-        "required": ["name", "type", "max_length"]
-    },
-    {
-        "type": "object",
-        "properties": {
-            "name": {"type": "string", "minLength": 2, "maxLength": 128},
-            "type": {"type": "string", "enum": ["text"]},
-            "default": {"type": "string", "minLength": 0}
-        },
-        "required": ["name", "type"]
-    }
+    v.get_json_schema() for v in field_registry.registry.values()
 ]
+
 
 json = {
     "type": "object",
