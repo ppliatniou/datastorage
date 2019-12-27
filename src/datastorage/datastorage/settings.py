@@ -123,7 +123,7 @@ REST_FRAMEWORK = {
 
 
 # Celery application definition
-CELERY_BROKER_URL = 'amqp://sandboxpy:sandboxpy@localhost:9172//sandboxpy'
+CELERY_BROKER_URL = 'amqp://datastorage:datastorage@localhost:9172//datastorage'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'

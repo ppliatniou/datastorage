@@ -1,0 +1,70 @@
+version: '3'
+
+volumes:
+  static-volume:
+  logs-volume:
+services:
+  nginx:
+    restart: always
+    image: nginx:latest
+    expose:
+      - 8010
+    ports:
+      - 8010:8010
+    volumes:
+      - static-volume:/www/app/static
+      - logs-volume:/www/logs
+      - ./docker/nginx/:/etc/nginx/conf.d/
+    depends_on:
+      - app
+  app: &app
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - settings.env
+    volumes:
+      - static-volume:/www/app/static
+      - logs-volume:/www/logs
+    expose:
+      - 8001
+    ports:
+      - 8001:8001
+    command: bash -c "python manage.py migrate --noinput && gunicorn -c gunicorn.py datastorage.wsgi"
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+  celery:
+    <<: *app
+    command: "celery -A datastorage worker -l debug "
+    volumes:
+      - static-volume:/www/app/static
+      - logs-volume:/www/logs
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+    ports: []
+    expose: []
+  db:
+    image: postgres:12-alpine
+    environment:
+      POSTGRES_PASSWORD: datastorage
+      POSTGRES_USER: datastorage
+      POSTGRES_DB: datastorage
+    volumes:
+      - ~/sandboxpy_prod_dbdata:/data/pgdata
+  redis:
+    image: redis:5
+    restart: always
+  rabbitmq:
+    image: rabbitmq:3.7-management
+    environment:
+      RABBITMQ_DEFAULT_USER: datastorage
+      RABBITMQ_DEFAULT_PASS: datastorage
+      RABBITMQ_DEFAULT_VHOST: /datastorage
+    ports:
+#      - 5672:5672
+      - 15672:15672
