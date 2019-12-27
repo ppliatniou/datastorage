@@ -4,6 +4,8 @@ from django.test import TestCase
 from django.test import Client
 from django.db import connection
 
+from factory.storage.validation import RESERVED_NAMES
+
 
 class FactoryAPITestCase(TestCase):
     
@@ -53,6 +55,30 @@ class FactoryAPITestCase(TestCase):
         )
         self.assertEqual(r.status_code, 400)
         self.assertTrue(self.is_field_in_details('text', r.content))
+        # Testing reserved names
+        for rname in RESERVED_NAMES:
+            r = c.post(
+                '/api/v1/factory/storage/',
+                {
+                    "name": "storage",
+                    "key": {"name": rname, "type": "integer"},
+                    "fields": [{"name": "sfield", "type": "long"}],
+                },
+                content_type='application/json'
+            )
+            self.assertEqual(r.status_code, 400)
+            r = c.post(
+                '/api/v1/factory/storage/',
+                {
+                    "name": "storage",
+                    "key": {"name": "id", "type": "integer"},
+                    "fields": [{"name": rname, "type": "long"}],
+                },
+                content_type='application/json'
+            )
+            print(r.content)
+            self.assertEqual(r.status_code, 400)
+            
     
     def test_negative_view_validation(self):
         c = Client()
