@@ -13,6 +13,7 @@ class FieldHelperMixin:
         index_names = []
         if self.get_key_field_name():
             index_names.append(self.get_key_field_name())
+        index_names.extend(["created_at", "updated_at"])
         return index_names + [
             f["name"]
             for f in self.definition["fields"]
@@ -23,17 +24,14 @@ class FieldHelperMixin:
 class StorageManager(models.Manager):
     
     def last_versions(self):
-        return \
-            Storage.objects.filter(
-                id__in=Storage.objects.all() \
-                    .order_by('name', '-version').distinct('name').values_list('id')
-            )
+        return Storage.objects.filter(last_version=True)
 
 
 class Storage(FieldHelperMixin, models.Model):
     name = models.CharField(max_length=128, db_index=True)
     version = models.IntegerField()
     locked = models.BooleanField(default=True)
+    last_version = models.BooleanField(default=True)
     definition = JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

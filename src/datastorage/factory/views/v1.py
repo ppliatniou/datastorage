@@ -4,6 +4,8 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
 
 from utils.viewsets import JSONSchemaViewSet
+from utils.pagination import StandardResultsSetPagination
+from utils.exceptions import ConflictError
 
 from factory.views import schemas
 from factory.views.serializers import StorageSerializer, MigrationSerializer
@@ -11,7 +13,7 @@ from factory.models import Storage, StorageMigration
 from factory.storage.validation import is_valid as is_storage_valid
 from factory.storage.compatibility import is_compatible as is_storage_compatible
 from factory.storage.migration import create_migration_diff
-from factory.storage.migration import perform_migration
+from factory.tasks import perform_migration
 
 
 class StorageFactoryViewSet(JSONSchemaViewSet):
@@ -19,6 +21,7 @@ class StorageFactoryViewSet(JSONSchemaViewSet):
     queryset = Storage.objects.last_versions().order_by('-created_at')
     serializer_class = StorageSerializer
     lookup_field = 'name'
+    pagination_class = StandardResultsSetPagination
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -34,6 +37,8 @@ class StorageFactoryViewSet(JSONSchemaViewSet):
         previous = None
         try:
             previous = qs.get(name=storage_name)
+            if previous.locked:
+                raise ConflictError(detail="Last version of storage is still locked")
 
             is_storage_compatible(previous.definition, storage_definition)
 
@@ -42,6 +47,8 @@ class StorageFactoryViewSet(JSONSchemaViewSet):
                 "version": previous.version + 1,
                 "definition": storage_definition
             }
+            previous.last_version = False
+            previous.save()
         except Storage.DoesNotExist:
             data = {
                 "name": storage_name,
@@ -60,7 +67,7 @@ class StorageFactoryViewSet(JSONSchemaViewSet):
             version=instance.version,
             definition=migration_diff
         )
-        perform_migration(sm)
+        perform_migration.delay(sm.id)
         
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

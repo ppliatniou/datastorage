@@ -8,6 +8,7 @@ from rest_framework import status
 from django.db import transaction, IntegrityError
 
 from utils import exceptions as app_exceptions
+from utils.pagination import StandardResultsSetPagination
 
 from storage.model_registry import registry as model_registry
 
@@ -26,6 +27,11 @@ class StorageViewSet(GetOrRetrieveMixin,
     lookup_field = 'storage_key'
     lookup_url_kwarg = 'storage_key'
     lookup_value_regex = r'[0-9A-Za-z-_/]+'
+    pagination_class = StandardResultsSetPagination
+    
+    @property
+    def filterset_class(self):
+        return self.get_storage_model().storage_meta.filterset_class
     
     def get_storage_model(self):
         return self.kwargs["storage"]
@@ -65,7 +71,7 @@ class StorageViewSet(GetOrRetrieveMixin,
         return self.get_storage_model().storage_meta.serializer_class
 
     def get_queryset(self):
-        return self.get_storage_model().objects
+        return self.get_storage_model().objects.order_by('-updated_at')
     
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())

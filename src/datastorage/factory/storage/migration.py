@@ -69,6 +69,20 @@ def perform_migration(migration):
                 statement=key_field.sql_def(migration.definition["key"], is_pk=True)[0][1]
             )
         )
+        operate_table_queries.append(
+            SQL_CREATE_INDEX.format(
+                idx_name='{}_{}_idx'.format(migration.name.lower(), 'created_at'),
+                table_name=STORAGE_TABLE_PREFIX.format(migration.name.lower()),
+                field_name='created_at'
+            )
+        )
+        operate_table_queries.append(
+            SQL_CREATE_INDEX.format(
+                idx_name='{}_{}_idx'.format(migration.name.lower(), 'updated_at'),
+                table_name=STORAGE_TABLE_PREFIX.format(migration.name.lower()),
+                field_name='updated_at'
+            )
+        )
         
     for def_field in migration.definition["fields"]:
         field = field_registry.get(def_field["type"])
@@ -87,7 +101,7 @@ def perform_migration(migration):
                     field_name=def_field["name"]
                 )
             )
-    
+
     with connection.cursor() as cursor:
         with transaction.atomic():
             for query in operate_table_queries:

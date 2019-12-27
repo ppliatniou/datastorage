@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     #'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_filters',
     'factory',
     'storage',
 ]
@@ -114,8 +115,20 @@ REST_FRAMEWORK = {
         # 'rest_framework.authentication.BasicAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
     ],
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
     'UNAUTHENTICATED_USER': None
 }
+
+
+# Celery application definition
+CELERY_BROKER_URL = 'amqp://sandboxpy:sandboxpy@localhost:9172//sandboxpy'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+
 
 try:
     from settings_local import *

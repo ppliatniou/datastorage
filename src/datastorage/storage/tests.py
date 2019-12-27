@@ -61,7 +61,6 @@ class StorageAPITestCase(TestCase):
         self.assertEqual(r.status_code, 404)
     
     def test_positive_flow(self):
-        # TODO: add list filters
         self.create_storage_foo()
         c = Client()
         r = c.get('/api/v1/storage/Foo/')
@@ -117,3 +116,12 @@ class StorageAPITestCase(TestCase):
         self.assertEqual(got_content['version'], content['version'])
         self.assertEqual(got_content['created_at'], content['created_at'])
         self.assertEqual(got_content['updated_at'], content['updated_at'])
+        
+        r = c.get('/api/v1/storage/Foo/?fieldlong=2')
+        self.assertEqual(r.status_code, 200)
+        content = json.loads(r.content)
+        self.assertEqual(content['count'], 1)
+        r = c.get('/api/v1/storage/Foo/?fieldlong=0')
+        self.assertEqual(r.status_code, 200)
+        content = json.loads(r.content)
+        self.assertEqual(content['count'], 0)
