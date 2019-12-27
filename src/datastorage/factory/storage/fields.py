@@ -22,7 +22,8 @@ class BaseSchemaField:
         :param definition:
         :param args:
         :param kwargs:
-        :return: [] - query statements ADD_COLUMN..., ALTER_COUMN...
+        :return: [] - tuples of query statements ADD_COLUMN..., ALTER_COUMN...
+            in format ('alter|update', 'statement')
         """
         raise NotImplementedError("Method sql_def() is not implemented")
     
@@ -59,15 +60,37 @@ class IntegerSchemaField(BaseSchemaField):
         statements = []
         if kwargs.get('is_pk'):
             statements.append(
-                "ADD COLUMN {} integer NOT NULL UNIQUE PRIMARY KEY".format(definition["name"])
+                ("alter", "ADD COLUMN {} integer NOT NULL UNIQUE PRIMARY KEY".format(definition["name"]))
             )
         else:
-            statements.append("ADD COLUMN {} integer NOT NULL".format(definition["name"]))
+            statements.append(
+                ("alter", "ADD COLUMN {} integer".format(definition["name"]))
+            )
             if "default" in definition:
-                statements.append("ALTER COLUMN {} SET DEFAULT {}".format(
-                    definition["name"],
-                    definition["default"]
-                ))
+                statements.append(
+                    (
+                        "alter",
+                        "ALTER COLUMN {} SET DEFAULT {}".format(
+                            definition["name"],
+                            definition["default"]
+                        )
+                    )
+                )
+                statements.append(
+                    (
+                        "update",
+                        "SET {}={}".format(
+                            definition["name"],
+                            definition["default"]
+                        )
+                    )
+                )
+            statements.append(
+                (
+                    "alter",
+                    "ALTER COLUMN {} SET NOT NULL".format(definition["name"])
+                )
+            )
         return statements
     
     def index_def(self, definition):
@@ -77,6 +100,8 @@ class IntegerSchemaField(BaseSchemaField):
         field_kwargs = {}
         if kwargs.get("is_pk"):
             field_kwargs["primary_key"] = True
+        field_kwargs["default"] = definition.get("default")
+        field_kwargs["db_index"] = definition.get("db_index", False)
         return models.IntegerField(**field_kwargs)
 
 
@@ -97,16 +122,32 @@ class LongSchemaField(BaseSchemaField):
     def sql_def(self, definition, *args, **kwargs):
         statements = []
         if kwargs.get('is_pk'):
-            statements.append(
-                "ADD COLUMN {} bigint NOT NULL UNIQUE PRIMARY KEY".format(definition["name"])
-            )
+            statements.append((
+                "alter", "ADD COLUMN {} bigint NOT NULL UNIQUE PRIMARY KEY".format(definition["name"])
+            ))
         else:
-            statements.append("ADD COLUMN {} bigint NOT NULL".format(definition["name"]))
+            statements.append(("alter", "ADD COLUMN {} bigint".format(definition["name"])))
             if "default" in definition:
-                statements.append("ALTER COLUMN {} SET DEFAULT {}".format(
-                    definition["name"],
-                    definition["default"]
+                statements.append((
+                    "alter",
+                    "ALTER COLUMN {} SET DEFAULT {}".format(
+                        definition["name"],
+                        definition["default"]
+                    )
                 ))
+                statements.append(
+                    (
+                        "update",
+                        "SET {}={}".format(
+                            definition["name"],
+                            definition["default"]
+                        )
+                    )
+                )
+            statements.append((
+                "alter",
+                "ALTER COLUMN {} SET NOT NULL".format(definition["name"])
+            ))
         return statements
     
     def index_def(self, definition):
@@ -116,6 +157,8 @@ class LongSchemaField(BaseSchemaField):
         field_kwargs = {}
         if kwargs.get("is_pk"):
             field_kwargs["primary_key"] = True
+        field_kwargs["default"] = definition.get("default")
+        field_kwargs["db_index"] = definition.get("db_index", False)
         return models.BigIntegerField(**field_kwargs)
 
 
@@ -138,20 +181,40 @@ class StringSchemaField(BaseSchemaField):
     def sql_def(self, definition, *args, **kwargs):
         statements = []
         if kwargs.get('is_pk'):
-            statements.append("ADD COLUMN {} character varying({}) UNIQUE PRIMARY KEY".format(
-                definition["name"],
-                definition["max_length"]
+            statements.append((
+                "alter",
+                "ADD COLUMN {} character varying({}) UNIQUE PRIMARY KEY".format(
+                    definition["name"],
+                    definition["max_length"]
+                )
             ))
         else:
-            statements.append("ADD COLUMN {} character varying({}) NOT NULL".format(
-                definition["name"],
-                definition["max_length"]
+            statements.append((
+                "alter",
+                "ADD COLUMN {} character varying({})".format(
+                    definition["name"],
+                    definition["max_length"]
+                )
             ))
             if "default" in definition:
-                statements.append("ALTER COLUMN {} SET DEFAULT '{}'".format(
-                    definition["name"],
-                    definition["default"]
+                statements.append((
+                    "alter",
+                    "ALTER COLUMN {} SET DEFAULT '{}'".format(
+                        definition["name"],
+                        definition["default"]
+                    )
                 ))
+                statements.append((
+                    "update",
+                    "SET {}='{}'".format(
+                        definition["name"],
+                        definition["default"]
+                    )
+                ))
+            statements.append((
+                "alter",
+                "ALTER COLUMN {} SET NOT NULL".format(definition["name"])
+            ))
         return statements
     
     def index_def(self, definition):
@@ -163,6 +226,8 @@ class StringSchemaField(BaseSchemaField):
         }
         if kwargs.get("is_pk"):
             field_kwargs["primary_key"] = True
+        field_kwargs["default"] = definition.get("default")
+        field_kwargs["db_index"] = definition.get("db_index", False)
         return models.CharField(**field_kwargs)
 
 
@@ -181,18 +246,39 @@ class TextSchemaField(BaseSchemaField):
     
     def sql_def(self, definition, *args, **kwargs):
         statements = []
-        statements.append("ADD COLUMN {} text NOT NULL".format(
-            definition["name"]
+        statements.append((
+            "alter",
+            "ADD COLUMN {} text".format(
+                definition["name"]
+            )
         ))
         if "default" in definition:
-            statements.append("ALTER COLUMN {} SET DEFAULT '{}'".format(
-                definition["name"],
-                definition["default"]
+            statements.append((
+                "alter",
+                "ALTER COLUMN {} SET DEFAULT '{}'".format(
+                    definition["name"],
+                    definition["default"]
+                )
             ))
+            statements.append((
+                "update",
+                "SET {}='{}'".format(
+                    definition["name"],
+                    definition["default"]
+                )
+            ))
+        statements.append((
+            "alter",
+            "ALTER COLUMN {} SET NOT NULL".format(
+                definition["name"]
+            )
+        ))
         return statements
     
     def django_db_field(self, definition, *args, **kwargs):
         field_kwargs = {}
+        field_kwargs["default"] = definition.get("default")
+        field_kwargs["db_index"] = definition.get("db_index", False)
         return models.TextField(**field_kwargs)
 
 

@@ -12,7 +12,7 @@ __all__ = (
 def Storage(storage, module='factory.models'):
     class_attrs = {}
     class_attrs['__module__'] = module
-    class_attrs["version"] = models.IntegerField()
+    class_attrs["version"] = models.IntegerField(default=1)
     class_attrs["created_at"] = models.DateTimeField(auto_now_add=True)
     class_attrs["updated_at"] = models.DateTimeField(auto_now=True)
 

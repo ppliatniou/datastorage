@@ -21,16 +21,30 @@ SQL_ALTER_TABLE = """
 ALTER TABLE {table_name} {statement};
 """
 
-SQL_CREATE_INDEX = """
-CREATE UNIQUE INDEX {idx_name} ON {table_name} ({field_name});
+SQL_UPDATE_TABLE = """
+UPDATE {table_name} {statement}
 """
+
+SQL_CREATE_INDEX = """
+CREATE INDEX {idx_name} ON {table_name} ({field_name});
+"""
+
+SQL_OPERATIONS = {
+    "alter": SQL_ALTER_TABLE,
+    "update": SQL_UPDATE_TABLE,
+    "index": SQL_CREATE_INDEX
+}
+
+
+def get_operation(op):
+    return SQL_OPERATIONS[op]
 
 
 def create_migration_diff(previous, latest):
     if previous is None:
         return latest.definition
     else:
-        previous_field_names = [f["name"] for f in previous.definition["fields"]]
+        previous_field_names = previous.get_field_names()
         return {
             "fields": [
                 f
@@ -52,22 +66,22 @@ def perform_migration(migration):
         operate_table_queries.append(
             SQL_ALTER_TABLE.format(
                 table_name=STORAGE_TABLE_PREFIX.format(migration.name.lower()),
-                statement=key_field.sql_def(migration.definition["key"], is_pk=True)[0]
+                statement=key_field.sql_def(migration.definition["key"], is_pk=True)[0][1]
             )
         )
         
     for def_field in migration.definition["fields"]:
         field = field_registry.get(def_field["type"])
         operate_table_queries.extend([
-            SQL_ALTER_TABLE.format(
+            get_operation(op).format(
                 table_name=STORAGE_TABLE_PREFIX.format(migration.name.lower()),
                 statement=statement
             )
-            for statement in field.sql_def(def_field)
+            for op, statement in field.sql_def(def_field)
         ])
         if field.index_def(def_field):
             operate_table_queries.append(
-                SQL_CREATE_INDEX.format(
+                get_operation("index").format(
                     idx_name='{}_{}_idx'.format(migration.name.lower(), def_field["name"]),
                     table_name=STORAGE_TABLE_PREFIX.format(migration.name.lower()),
                     field_name=def_field["name"]
