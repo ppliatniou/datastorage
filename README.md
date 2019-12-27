@@ -22,7 +22,7 @@ There are needs to store many different entities that can be got by some unique 
 
 * automatic validation of data by storage structure
 
-* optimistic locking
+* Protection against concurrent changing of data
 
 
 # Implementation
