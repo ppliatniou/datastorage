@@ -16,7 +16,7 @@ In the situations when something generates big and unstructured events the endpo
  
 ![Process diagram](docs/img/animal_process.JPG)
  
-This diagram shows how some huge event about new animal that contains thousand of fields goes to central storage, let say that's central animal ministry :D And after some pipeline-process is connected to this worker and filtering and preparing the data by two types of animal - dogs and cats and selects important attributes for those animal species. After filtration this worker stores the prepared data to separated storages for this two types. And this project helps to operate such storages.
+This diagram shows how some data broker is getting too many unstructured items about new animal that contain thousand of fields. Let say that's central animal ministry :D And after some worker is reading all those items and filtering and preparing the data by two types of animal - dogs and cats and selects important attributes for those animal species. After filtration this worker stores the prepared data to separated storages for this two types. **And this project helps to operate such storages.** All those two storages can get new or updated information from other sources, and also have too many consumers.
 
 # Requirements
 
@@ -34,6 +34,8 @@ This diagram shows how some huge event about new animal that contains thousand o
 
 * Protection against concurrent changing of data
 
+As demo project some functionality is simplified: it will support only few types: int, long, string and text, all the fields should be required, supports only backward compatibility and doesn't support changing of previous data structure.
+
 
 # Implementation
 
@@ -44,6 +46,53 @@ storage can validate incoming data and store it to database. Any recipients can 
 with this somehow. The storage support changing schemas, but new schema should have backward compatibility with previous one.
 That means you can only add new fields with default value. All the old data will be updated with this new field and value. 
 Of cource, for test project it doesn't support various types, for first version it's integer and text types.
+
+In our example with animals we need to create two storages for dogs and cats.
+
+Storage for dogs can have the next atributes:
+
+* chip_id - unique identifier
+
+* color - string describes the color, need to filter by this field
+
+* collar_size - integer describes collar size in cm
+
+for cats:
+
+* chip_id - unique identifier
+
+* color - string describes the color, need to filter by this field
+
+* description - text describes a cat shape
+
+For application declaration such entities have the next definitions:
+
+dog 
+
+```json
+{
+    "name": "dog
+    "key": {"name": "chip_id", "type": "string", "max_length": 16},
+    "fields": [
+        {"name": "color", "type": "string", "max_length": 32. "db_index": true},
+        {"name": "collar_size", "type": "integer"}        
+    ]
+}
+```
+
+cat
+
+```json
+{
+    "name": "dog
+    "key": {"name": "chip_id", "type": "string", "max_length": 16},
+    "fields": [
+        {"name": "color", "type": "string", "max_length": 32. "db_index": true},
+        {"name": "collar_size", "type": "integer"}        
+    ]
+}
+
+```
 
 # API
 
