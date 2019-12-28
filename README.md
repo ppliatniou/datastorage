@@ -149,11 +149,65 @@ List of all storage items.
 
 # Run example
 
+To run application simply you can use built in docker settings. From the root of repo directory run the next command:
+
+> docker-compose build
+
+> docker-compose up
+
+The project will be available on address 
 
 # development environment
 
+Project settings can be redefined with file settings_local.py in directory src/datastorage.
+
+Before attempts to run the project the next steps can help:
+
+>cd dev
+
+>docker-compose up
+
+Thhis docker setting run database and other environment for the project.
+
+For running application there are the next steps:
+
+Build environment on python3.6
+
+> virtualenv dsenv --no-site-packages
+
+Apply environment
+
+> . dsenv/bin/activate
+
+Install python packages
+
+> pip install -r src/requirements.txt
+
+Go to app directory 
+
+>cd src/datastorage
+
+Run migrations
+
+> python manage.py migrate
+
+Start application
+
+> python manage.py runserver
+
+In other terminal window activate environment and run celery worker:
+
+> celery -A sandboxpy worker -l debug
+
+# testing
+
+In your applied dev environment install tox
+
+> pip install tox
+
+Run tox
+
+> tox
 
 # src structure
 
-
-# testing
