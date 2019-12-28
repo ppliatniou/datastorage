@@ -1,13 +1,23 @@
 # datastorage
-Test project of data storage on django/python
+Provides API-service for arranging data storages with various structure and supports CRUD-operation for those storages.
+Each storage is created by declarative structure and has endpoint for all operations. Endpoint for accessint storage supports 
+pagination, filtering and protection agains concturrent updating (optimistic locking).
+This projects has been built on:
+* Django
+* rest_framework
+* Postgres
+
+As demo project too many things are simplified :) But it doesn't matter it could be made better.
 
 # Problem
 
-There are needs to store many different entities that can be got by some unique key. Data structure of those entities are 
- various. Entity should support indexes for fast searching and also should store various data structure. Data structure 
- can be updated and in this case should support backward compatibility. Each storage should provide validation by their
- structure and have protection against concurrent access.
+In the situations when something generates big and unstructured events the endpoint data can be a pain for receivers that need to 
+ work with objects that have certain and defined structure. For example process of selling products on onlain shops can have too much data, and certain consumer needs only data about product and when it has been sold. And other data about price, customer and etc is not important for this consumer. But let's see another process:
  
+![Process diagram](docs/img/animal_process.JPG)
+ 
+This diagram shows how some huge event about new animal that contains thousand of fields goes to central storage, let say that's central animal ministry :D And after some pipeline-process is connected to this worker and filtering and preparing the data by two types of animal - dogs and cats and selects important attributes for those animal species. After filtration this worker stores the prepared data to separated storages for this two types. And this project helps to operate such storages.
+
 # Requirements
 
 * api for creation storages
