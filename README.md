@@ -69,12 +69,12 @@ For application declaration such entities have the next definitions:
 
 dog 
 
-```json
+```
 {
-    "name": "dog
+    "name": "dog",
     "key": {"name": "chip_id", "type": "string", "max_length": 16},
     "fields": [
-        {"name": "color", "type": "string", "max_length": 32. "db_index": true},
+        {"name": "color", "type": "string", "max_length": 32, "db_index": true},
         {"name": "collar_size", "type": "integer"}        
     ]
 }
@@ -82,17 +82,50 @@ dog
 
 cat
 
-```json
+```
 {
-    "name": "dog
+    "name": "cat",
     "key": {"name": "chip_id", "type": "string", "max_length": 16},
     "fields": [
-        {"name": "color", "type": "string", "max_length": 32. "db_index": true},
-        {"name": "collar_size", "type": "integer"}        
+        {"name": "color", "type": "string", "max_length": 32, "db_index": true},
+        {"name": "description", "type": "text"}        
     ]
 }
+```
+Storages can be created with the next endpoint of storage factory:
 
 ```
+curl -X POST http://127.0.0.1:8010/api/v1/factory/storage/ -H "Content-Type: application/json" -d '<cat and/or dog definition>'
+```
+
+Storages have been created! To operate this storage there are new endpoints appeared:
+
+http://127.0.0.1:8010/api/v1/storage/dog/
+
+Data example:
+
+```
+{
+    "chip_id": "CHIP1",
+    "color": "red",
+    "collar_size": 40
+}
+```
+
+* http://127.0.0.1:8010/api/v1/storage/cat/
+
+Data example:
+
+```
+{
+    "chip_id": "CHIP2",
+    "color": "red",
+    "collar_size": 40
+}
+```
+
+All such endpoints support GET, POST methods for list and create fields. If field defined as db_index it is available as filter field 
+as query argument (also list can be filtered by key field). To access item by id you can use http://127.0.0.1:8010/api/v1/storage/god/<chip_id>/ and there are methods PUT, GET and DELETE allowed.
 
 # API
 
