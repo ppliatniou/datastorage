@@ -125,3 +125,85 @@ class StorageAPITestCase(TestCase):
         self.assertEqual(r.status_code, 200)
         content = json.loads(r.content)
         self.assertEqual(content['count'], 0)
+
+    def test_version_locking(self):
+        self.create_storage_foo()
+        c = Client()
+        r = c.get('/api/v1/storage/Foo/')
+        self.assertEqual(r.status_code, 200)
+
+        r = c.post(
+            '/api/v1/storage/Foo/',
+            content_type="application/json",
+            data={
+                "id": "foo1",
+                "fieldstring": "f1",
+                "fieldint": 2,
+                "fieldstring2": "fs3",
+                "fieldtext": "SELECT * from factory_storage"
+            }
+        )
+        self.assertEqual(r.status_code, 201)
+        content = json.loads(r.content)
+        self.assertEqual(content["version"], 1)
+        r = c.post(
+            '/api/v1/storage/Foo/',
+            content_type="application/json",
+            data={
+                "id": "foo1",
+                "fieldstring": "f1",
+                "fieldint": 2,
+                "fieldstring2": "fs3",
+                "fieldtext": "SELECT * from factory_storage"
+            }
+        )
+        self.assertEqual(r.status_code, 201)
+        content = json.loads(r.content)
+        self.assertEqual(content["version"], 2)
+        r = c.post(
+            '/api/v1/storage/Foo/',
+            content_type="application/json",
+            data={
+                "id": "foo1",
+                "fieldstring": "f1",
+                "fieldint": 2,
+                "fieldstring2": "fs3",
+                "fieldtext": "SELECT * from factory_storage",
+                "version": 2
+            }
+        )
+        self.assertEqual(r.status_code, 201)
+        content = json.loads(r.content)
+        self.assertEqual(content["version"], 3)
+        
+        # Previous version
+        r = c.post(
+            '/api/v1/storage/Foo/',
+            content_type="application/json",
+            data={
+                "id": "foo1",
+                "fieldstring": "f1",
+                "fieldint": 2,
+                "fieldstring2": "fs3",
+                "fieldtext": "SELECT * from factory_storage",
+                "version": 2
+            }
+        )
+        self.assertEqual(r.status_code, 409)
+       
+        # Dataset with random version
+        r = c.post(
+            '/api/v1/storage/Foo/',
+            content_type="application/json",
+            data={
+                "id": "foo2",
+                "fieldstring": "f1",
+                "fieldint": 2,
+                "fieldstring2": "fs3",
+                "fieldtext": "SELECT * from factory_storage",
+                "version": 10
+            }
+        )
+        self.assertEqual(r.status_code, 201)
+        content = json.loads(r.content)
+        self.assertEqual(content["version"], 10)

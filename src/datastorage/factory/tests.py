@@ -76,7 +76,6 @@ class FactoryAPITestCase(TestCase):
                 },
                 content_type='application/json'
             )
-            print(r.content)
             self.assertEqual(r.status_code, 400)
             
     

@@ -3,9 +3,23 @@ Provides API-service for arranging data storages with various structure and supp
 Each storage is created by declarative structure and has endpoint for all operations. Endpoint for accessing storage supports 
 pagination, filtering and protection against concurrent updating (optimistic locking).
 This projects has been built on:
+
 * Django
+
 * rest_framework
+
+* Celery
+
 * Postgres
+
+Used tools:
+
+* validating requests by json-schema
+
+* build models and other classes by type-factories
+
+* build api based on DRF viewsets
+
 
 As demo project too many things are simplified :) But it doesn't matter it could be made better.
 
