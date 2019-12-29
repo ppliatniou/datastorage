@@ -459,7 +459,59 @@ definitions with argument "default". As result you will get new version of stora
 
 ### GET /api/v1/factory/storage/{storage_name}/
 
+Detailed information about storage
+
+**Response**
+
+<details><summary>200 OK Content-Type: application/json</summary>
+ 
+ ```
+ {
+    "name": "dog",
+    "version": 2,
+    "locked": false,
+    "definition": {
+        "key": {
+            "name": "chip_id",
+            "type": "string",
+            "max_length": 16
+        },
+        "fields": [
+            {
+                "name": "color",
+                "type": "string",
+                "db_index": true,
+                "max_length": 32
+            },
+            {
+                "name": "collar_size",
+                "type": "integer"
+            }
+        ]
+    },
+    "created_at": "2019-12-29T13:23:30.982711Z",
+    "updated_at": "2019-12-29T13:23:30.982739Z"
+}
+ ```
+
+</details>
+
 ### GET /api/v1/factory/ready_status/{storage_name}/
+
+Get information about storage creation status. If all migration performed successfuly the applied status will be true, if something
+ went wrong or migrations are still performing status will be false
+ 
+<details><summary>200 OK Content-Type: application/json</summary>
+ 
+ ```
+ {
+    "name": "dog",
+    "version": 2,
+    "applied": true
+}
+ ```
+
+</details>
 
 ### GET /api/v1/storage/{storage_name}/
 
@@ -532,4 +584,18 @@ Run tox
 > tox
 
 # src structure
+
+* dev - helper tools for development. Contains docker-compose file for development environment
+
+* docker - contains settings for docker demo environment 
+
+* src - source code
+
+    * datastorage - Django project folder
+ 
+        * factory - application implement logic for storing storages and perfrom migrations of those
+  
+        * storage - generic tool for working with saved storages
+  
+        * utils - helpers and overriden logic
 
