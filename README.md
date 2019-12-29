@@ -571,7 +571,7 @@ Start application
 
 In other terminal window activate environment and run celery worker:
 
-> celery -A sandboxpy worker -l debug
+> celery -A datastorage worker -l debug
 
 # testing
 
