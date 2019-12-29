@@ -1,7 +1,7 @@
 # datastorage
 Provides API-service for arranging data storages with various structure and supports CRUD-operation for those storages.
-Each storage is created by declarative structure and has endpoint for all operations. Endpoint for accessint storage supports 
-pagination, filtering and protection agains concturrent updating (optimistic locking).
+Each storage is created by declarative structure and has endpoint for all operations. Endpoint for accessing storage supports 
+pagination, filtering and protection against concurrent updating (optimistic locking).
 This projects has been built on:
 * Django
 * rest_framework
@@ -515,11 +515,170 @@ Get information about storage creation status. If all migration performed succes
 
 ### GET /api/v1/storage/{storage_name}/
 
+List of storage's items. 
+
+**Query params**
+
+* limit - integer, the maximum number of items to return
+
+* offset - integer, the starting position of the query
+
+* all the fields defined as db_index, key, created_at, updated_at. created_at and update_at are expected to support lte, gte soon 
+
+**Response**
+
+<details><summary>200 OK Content-Type: application/json</summary>
+ 
+ ```
+ {
+    "count": 1,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "chip_id": "CHIP01A",
+            "color": "red",
+            "collar_size": 40,
+            "version": 1,
+            "created_at": "2019-12-29T19:08:53.644833Z",
+            "updated_at": "2019-12-29T19:08:53.644891Z"
+        }
+    ]
+}
+ ```
+
+</details>
+
+<details><summary>409 Conflict Content-Type: application/json</summary>
+ 
+ ```
+ {
+    "detail": "Error detail message"
+}
+ ```
+
+</details>
+
 ### POST /api/v1/storage/{storage_name}/
+
+Create a new version of data
+
+**Request data description**
+
+* All the fields and key defined on storage. Fields with argument default can be passed, in this case default value will set.
+
+* version - field for control concurrent request. This field is not required, then it will be set as 1 if version didn't exist before.
+ But in case if another value is countable it has sense to set this value of last version you have. In case if another request happened and version incremented in database you will get HTTP 409 Conflict error.
+
+**Query example**
+
+<details><summary>Example</summary>
+ 
+ ```
+ {
+    "chip_id": "CHIP01A",
+    "color": "red",
+    "collar_size": 40,
+    "version": 1
+}
+ ```
+
+</details>
+
+*In case of updating storage if it already exists in factory you need to make the similar query, but add to "fields" section new wield 
+definitions with argument "default". As result you will get new version of storage ("version" field will be incremented)*
+
+**Response**
+
+<details><summary>201 CREATED Content-Type: application/json</summary>
+ 
+ ```
+ {
+    "chip_id": "CHIP01A",
+    "color": "red",
+    "collar_size": 40,
+    "version": 2,
+    "created_at": "2019-12-29T19:08:53.644833Z",
+    "updated_at": "2019-12-29T19:19:25.280698Z"
+}
+ ```
+
+</details>
+
+<details><summary>400 Bad request Content-Type: application/json</summary>
+ 
+ ```
+ {
+    "detail": "Error detail message"
+}
+ ```
+
+</details>
+
+
+<details><summary>409 Conflict Content-Type: application/json</summary>
+ 
+ ```
+ {
+    "detail": "Error detail message"
+}
+ ```
+
+</details>
 
 ### GET /api/v1/storage/{storage_name}/{key}/
 
+Detailed information about storage's item
+
+**Response**
+
+<details><summary>200 OK Content-Type: application/json</summary>
+ 
+ ```
+ {
+    "chip_id": "CHIP01A",
+    "color": "red",
+    "collar_size": 40,
+    "version": 2,
+    "created_at": "2019-12-29T19:08:53.644833Z",
+    "updated_at": "2019-12-29T19:19:25.280698Z"
+}
+ ```
+
+</details>
+
+<details><summary>409 Conflict Content-Type: application/json</summary>
+ 
+ ```
+ {
+    "detail": "Error detail message"
+}
+ ```
+
+</details>
+
+
 ### DELETE /api/v1/storage/{storage_name}/{key}/
+
+Delete storage's item
+
+<details><summary>204 No content Content-Type: application/json</summary>
+ 
+ ```
+ ```
+
+</details>
+
+<details><summary>409 Conflict Content-Type: application/json</summary>
+ 
+ ```
+ {
+    "detail": "Error detail message"
+}
+ ```
+
+</details>
+
 
 # Run example
 
@@ -530,6 +689,11 @@ To run application simply you can use built in docker settings. From the root of
 > docker-compose up
 
 The project will be available on address 
+
+> http://localhost:8010/
+
+(Sorry for the mess with docker files, my home devices aren't for development and work on windows, don't want to dig why pathes don't work properly)
+
 
 # development environment
 
