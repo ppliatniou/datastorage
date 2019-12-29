@@ -133,7 +133,329 @@ as query argument (also list can be filtered by key field). To access item by id
 
 List of all storage items. 
 
+**Query params**
+
+* limit - integer, the maximum number of items to return
+
+* offset - integer, the starting position of the query
+
+**Response**
+
+<details><summary>200 OK Content-Type: application/json</summary>
+ 
+ ```
+ {
+    "count": 2,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "name": "dog",
+            "version": 2,
+            "locked": false,
+            "definition": {
+                "key": {
+                    "name": "chip_id",
+                    "type": "string",
+                    "max_length": 16
+                },
+                "fields": [
+                    {
+                        "name": "color",
+                        "type": "string",
+                        "db_index": true,
+                        "max_length": 32
+                    },
+                    {
+                        "name": "collar_size",
+                        "type": "integer"
+                    }
+                ]
+            },
+            "created_at": "2019-12-29T13:23:30.982711Z",
+            "updated_at": "2019-12-29T13:23:30.982739Z"
+        },
+        {
+            "name": "cat",
+            "version": 1,
+            "locked": false,
+            "definition": {
+                "key": {
+                    "name": "chip_id",
+                    "type": "string",
+                    "max_length": 16
+                },
+                "fields": [
+                    {
+                        "name": "color",
+                        "type": "string",
+                        "db_index": true,
+                        "max_length": 32
+                    },
+                    {
+                        "name": "description",
+                        "type": "text"
+                    }
+                ]
+            },
+            "created_at": "2019-12-28T20:15:39.382721Z",
+            "updated_at": "2019-12-28T20:15:39.382762Z"
+        }
+    ]
+}
+ ```
+
+</details>
+
 ### POST /api/v1/factory/storage/
+
+Create or create of new version of storage. 
+
+**Header**
+
+> Content-Type: application/json
+
+<details><summary>Schema</summary>
+
+```
+{
+    "type": "object",
+    "properties": {
+        "name": {"type": "string", "minLength": 1, "maxLength": 255},
+        "key": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string", "minLength": 1, "maxLength": 128},
+                        "type": {"type": "string", "enum": ["integer", "long"]}
+                    },
+                    "required": ["name", "type"]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string", "minLength": 1, "maxLength": 128},
+                        "type": {"type": "string", "enum": ["string"]},
+                        "max_length": {"type": "integer", "minimum": 1, "maximum": 1024}
+                    },
+                    "required": ["name", "type", "max_length"]
+                }
+            ]
+        },
+        "fields": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "oneOf": <see field definitions below>
+            }
+        },
+        "meta": {
+            "type": "object",
+            "properties": {
+                "unique_together": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": [
+                        {
+                            "type": "array",
+                            "minItems": 2,
+                            "items": [
+                                {"type": "string", "minLength": 2, "maxLength": 128}
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "additionalProperties": false,
+    "required": ["name", "key", "fields"]
+}
+```
+
+</details>
+
+#### Field definitions
+
+##### integer
+
+<details><summary>Integer field</summary>
+
+```
+{
+    "type": "object",
+    "properties": {
+        "name": {"type": "string", "minLength": 2, "maxLength": 128},
+        "type": {"type": "string", "enum": ["integer"]},
+        "db_index": {"type": "boolean", "default": False},
+        "default": {"type": "integer", "minimum": 0}
+    },
+    "additionalProperties": false,
+    "required": ["name", "type"]
+}
+```
+
+</details>
+
+<details><summary>Example</summary>
+
+```
+{"name": "fieldname", "type": "integer", "db_index": true, "default": 1}
+```
+
+</details>
+
+##### long
+
+<details><summary>Long field</summary>
+
+```
+{
+    "type": "object",
+    "properties": {
+        "name": {"type": "string", "minLength": 2, "maxLength": 128},
+        "type": {"type": "string", "enum": ["long"]},
+        "db_index": {"type": "boolean", "default": False},
+        "default": {"type": "integer", "minimum": 0}
+    },
+    "additionalProperties": false,
+    "required": ["name", "type"]
+}
+```
+
+</details>
+
+<details><summary>Example</summary>
+
+```
+{"name": "fieldname", "type": "long", "db_index": true, "default": 1}
+```
+
+</details>
+
+
+##### string
+
+<details><summary>String field</summary>
+
+```
+{
+    "type": "object",
+    "properties": {
+        "name": {"type": "string", "minLength": 2, "maxLength": 128},
+        "type": {"type": "string", "enum": ["string"]},
+        "max_length": {"type": "integer", "minimum": 1, "maximum": 1024},
+        "db_index": {"type": "boolean", "default": False},
+        "default": {"type": "string", "minLength": 0}
+    },
+    "additionalProperties": false,
+    "required": ["name", "type", "max_length"]
+}
+```
+
+</details>
+
+<details><summary>Example</summary>
+
+```
+{"name": "fieldname", "type": "string", "max_length": 16, "db_index": true, "default": "s"}
+```
+
+</details>
+
+##### text
+
+<details><summary>Text field</summary>
+
+```
+{
+    "type": "object",
+    "properties": {
+        "name": {"type": "string", "minLength": 2, "maxLength": 128},
+        "type": {"type": "string", "enum": ["text"]},
+        "default": {"type": "string", "minLength": 0}
+    },
+    "additionalProperties": False,
+    "required": ["name", "type"]
+}
+```
+
+</details>
+
+<details><summary>Example</summary>
+
+```
+{"name": "fieldname", "type": "string", "default": "s"}
+```
+
+</details>
+
+
+**Query example (with fields)**
+
+<details><summary>Example</summary>
+ 
+ ```
+ {
+    "name": "dog",
+    "key": {"name": "chip_id", "type": "string", "max_length": 16},
+    "fields": [
+        {"name": "color", "type": "string", "max_length": 32, "db_index": true},
+        {"name": "collar_size", "type": "integer"}        
+    ]
+}
+ ```
+
+</details>
+
+*In case of updating storage if it already exists in factory you need to make the similar query, but add to "fields" section new wield 
+definitions with argument "default". As result you will get new version of storage ("version" field will be incremented)*
+
+**Response**
+
+<details><summary>201 CREATED Content-Type: application/json</summary>
+ 
+ ```
+ {
+    "name": "dog",
+    "version": 1,
+    "locked": true,
+    "definition": {
+        "key": {
+            "name": "chip_id",
+            "type": "string",
+            "max_length": 16
+        },
+        "fields": [
+            {
+                "name": "color",
+                "type": "string",
+                "max_length": 32,
+                "db_index": true
+            },
+            {
+                "name": "collar_size",
+                "type": "integer"
+            }
+        ]
+    },
+    "created_at": "2019-12-29T13:23:30.982711Z",
+    "updated_at": "2019-12-29T13:23:30.982739Z"
+}
+ ```
+
+</details>
+
+<details><summary>400 Bad request Content-Type: application/json</summary>
+ 
+ ```
+ {
+    "detail": "Error detail message"
+}
+ ```
+
+</details>
 
 ### GET /api/v1/factory/storage/{storage_name}/
 
