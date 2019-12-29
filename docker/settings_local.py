@@ -1,10 +1,10 @@
 import os
 
-DEBUG = True
-
 STATIC_ROOT = "/www/app/static/"
 
 if not os.environ.get("SKIP_INIT", False):
+    DEBUG = os.environ.get('DEBUG', '0') == '1'
+
     DATABASES = {
         'default': {
             'HOST': os.environ['DATABASE_DEFAULT_HOST'],

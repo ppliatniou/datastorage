@@ -110,6 +110,10 @@ STATIC_URL = '/static/'
 
 # Rest framework overrides
 
+DEFAULT_RENDERER_CLASSES = (
+    'rest_framework.renderers.JSONRenderer',
+)
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # 'rest_framework.authentication.BasicAuthentication',
@@ -134,3 +138,13 @@ try:
     from settings_local import *
 except ImportError:
     pass
+
+
+# Dirty hack of settings, i understand it's too bad but i am so drunk and lazy to do it better
+# May delete later :D
+if DEBUG:
+    DEFAULT_RENDERER_CLASSES = DEFAULT_RENDERER_CLASSES + (
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    )
+
+REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = DEFAULT_RENDERER_CLASSES
