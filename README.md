@@ -761,7 +761,7 @@ Run tox
 
 > tox
 
-# src structure
+# source code structure
 
 * dev - helper tools for development. Contains docker-compose file for development environment
 
@@ -776,4 +776,3 @@ Run tox
         * storage - generic tool for working with saved storages
   
         * utils - helpers and overriden logic
-
