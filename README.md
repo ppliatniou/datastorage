@@ -21,7 +21,7 @@ Used tools:
 * build api based on DRF viewsets
 
 
-As demo project too many things are simplified :) But it doesn't matter it could be made better.
+As demo project here too many things are simplified :) But it doesn't matter it could have made better.
 
 # Problem
 
