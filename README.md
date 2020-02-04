@@ -423,7 +423,7 @@ Create or create of new version of storage.
 
 </details>
 
-*In case of updating storage if it already exists in factory you need to make the similar query, but add to "fields" section new wield 
+*In case of updating storage if it already exists in factory you need to make the similar query, but add to "fields" section new field 
 definitions with argument "default". As result you will get new version of storage ("version" field will be incremented)*
 
 **Response**
@@ -599,7 +599,7 @@ Create a new version of data
 
 </details>
 
-*In case of updating storage if it already exists in factory you need to make the similar query, but add to "fields" section new wield 
+*In case of updating storage if it already exists in factory you need to make the similar query, but add to "fields" section new field 
 definitions with argument "default". As result you will get new version of storage ("version" field will be incremented)*
 
 **Response**
